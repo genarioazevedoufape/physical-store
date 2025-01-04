@@ -13,6 +13,7 @@ export class Store {
 
   @Prop({ default: true })
   takeOutInStore: boolean; 
+  
   @Prop({ required: true, min: 0 }) 
   shippingTimeInDays: number;
 

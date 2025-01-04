@@ -1,14 +1,23 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
-import { StoresService } from './stores.service';
-import { Store } from './schema/store.schema';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 
+import { StoresService } from './stores.service';
+import { CreateStoreDto } from './dto/create-store.dto'; 
 @Controller('stores')
 export class StoresController {
   constructor(private readonly storesService: StoresService) {}
 
   @Post()
-  async create(@Body() store: Partial<Store>) {
-    return this.storesService.create(store);
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  async create(@Body() createStoreDto: CreateStoreDto) {
+    return this.storesService.create(createStoreDto);
   }
 
   @Get()
