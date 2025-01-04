@@ -54,9 +54,6 @@ import {
     @IsIn(['PDV', 'LOJA']) 
     type: string;
 
-    @IsString()
-    country: string;
-  
     @Matches(/^[0-9]{5}-[0-9]{3}$/)
     postalCode: string;
   
