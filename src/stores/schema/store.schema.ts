@@ -25,6 +25,7 @@ export class Store {
 
   @Prop({ required: true })
   address1: string; 
+
   @Prop()
   address2: string;
 
@@ -33,6 +34,7 @@ export class Store {
 
   @Prop({ required: true })
   city: string; 
+  
   @Prop({ required: true })
   district: string; 
 
@@ -41,6 +43,9 @@ export class Store {
 
   @Prop({ required: true, enum: ['PDV', 'LOJA'] }) 
   type: string;
+
+  @Prop({ default: 'BR' })
+  country: string;
 
   @Prop({ required: true, match: /^[0-9]{5}-[0-9]{3}$/ }) 
   postalCode: string;

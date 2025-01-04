@@ -31,6 +31,14 @@ import {
     @IsString()
     @IsNotEmpty()
     address1: string;
+
+    @IsString()
+    @IsNotEmpty()
+    address2: string;
+
+    @IsString()
+    @IsNotEmpty()
+    address3: string;
   
     @IsString()
     city: string;
@@ -45,6 +53,9 @@ import {
     @IsNotEmpty()
     @IsIn(['PDV', 'LOJA']) 
     type: string;
+
+    @IsString()
+    country: string;
   
     @Matches(/^[0-9]{5}-[0-9]{3}$/)
     postalCode: string;
