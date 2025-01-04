@@ -28,7 +28,8 @@ export class StoresService {
     } catch (error) {
       console.warn(`Erro ao converter CEP em coordenadas: ${error.message}`);
     }
-
+  
+    // Verifique os dados antes de criar a loja
     // console.log('Address:', address);
     // console.log('Coordinates:', coordinates);
   
