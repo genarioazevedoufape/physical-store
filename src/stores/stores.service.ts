@@ -7,6 +7,7 @@ import { fetchAddressFromCep } from '../utils/fetchAddressFromCep.helper';
 import { convertCepToCoordinates } from '../utils/convertCepToCoordinates.helper';
 import { ViaCepResponse } from '../types/viaCep-response.interface';
 import { Coordinates } from '../types/coordinates.interface';
+import { calcularDistancia } from '../utils/calculateDistance.helper';
 
 
 @Injectable()
@@ -29,10 +30,6 @@ export class StoresService {
       console.warn(`Erro ao converter CEP em coordenadas: ${error.message}`);
     }
   
-    // Verifique os dados antes de criar a loja
-    // console.log('Address:', address);
-    // console.log('Coordinates:', coordinates);
-  
     const storeData = {
       ...createStoreDto,
       address1: address?.logradouro || createStoreDto.address1,
@@ -52,9 +49,35 @@ export class StoresService {
     return this.storeModel.find().exec();
   }
 
-  async findByCep(postalCode: string): Promise<Store[]> {
-    return this.storeModel.find({ postalCode }).exec();
-  }
+  async findByCep(postalCode: string): Promise<{ storeName: string; distance: string; address: string }[]> {
+
+    const userCoordinates: Coordinates = await convertCepToCoordinates(postalCode);
+  
+    const stores = await this.storeModel.find({ type: { $in: ['LOJA', 'PDV'] } }).exec();
+  
+    const nearbyStores = stores
+      .map((store) => {
+        const storeCoordinates: Coordinates = {
+          latitude: parseFloat(store.latitude.toString()),
+          longitude: parseFloat(store.longitude.toString()),
+        };
+  
+        const distance = calcularDistancia(userCoordinates, storeCoordinates);
+  
+        if (distance <= 50) {
+          return {
+            storeName: store.storeName,
+            address: `${store.address1}, ${store.city}, ${store.state}, ${store.postalCode}`,
+            distance: `${distance.toFixed(2)} km`,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean) 
+      .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance)); 
+
+    return nearbyStores;
+  }  
 
   async findById(id: string): Promise<Store> {
     return this.storeModel.findById(id).exec();

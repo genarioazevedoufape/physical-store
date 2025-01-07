@@ -37,8 +37,8 @@ export async function convertCepToCoordinates(cep: string): Promise<Coordinates>
     }
 
     return {
-      latitude: location.lat.toString(),
-      longitude: location.lng.toString(),
+      latitude: location.lat,
+      longitude: location.lng
     };
   } catch (error) {
     if (error instanceof Error) {
