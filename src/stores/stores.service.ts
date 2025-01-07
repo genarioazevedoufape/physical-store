@@ -47,27 +47,44 @@ export class StoresService {
     return newStore.save();
   }  
 
-  async findAll(): Promise<Store[]> {
-    return this.storeModel.find().exec();
+  async findAll(limit: number, offset: number): Promise<any> {
+    const total = await this.storeModel.countDocuments().exec(); 
+    const stores = await this.storeModel
+      .find()
+      .skip(offset) 
+      .limit(limit) 
+      .exec();
+  
+    return {
+      stores: stores,
+      limit: limit,
+      offset: offset,
+      total: total,
+    };
   }
-
   
   async findByCep(postalCode: string): Promise<any[]> {
-
     const cleanedPostalCode = postalCode.replace('-', '');
+    
+    let userCoordinates: Coordinates | null = null;
+    try {
+      userCoordinates = await convertCepToCoordinates(cleanedPostalCode);
+    } catch (error) {
+      console.error(`Erro ao converter o CEP do usuário: ${error.message}`);
+      return [];
+    }
   
-    const userCoordinates: Coordinates = await convertCepToCoordinates(cleanedPostalCode);
     const stores = await this.storeModel.find({ type: { $in: ['LOJA', 'PDV'] } }).exec();
-  
+    
     const storeDetails = await Promise.all(
       stores.map(async (store) => {
         const storeCoordinates: Coordinates = {
           latitude: parseFloat(store.latitude.toString()),
           longitude: parseFloat(store.longitude.toString()),
         };
-  
+    
         const distance = calcularDistancia(userCoordinates, storeCoordinates);
-  
+    
         if (distance <= 50) {
           return {
             name: store.storeName,
@@ -84,17 +101,21 @@ export class StoresService {
             ],
           };
         } else if (store.type === 'LOJA') {
-
           const cleanedStorePostalCode = store.postalCode.replace('-', '');
-  
-          const freightOptions: FreightOption[] = await calcularFrete({
-            cepDestino: cleanedPostalCode,
-            cepOrigem: cleanedStorePostalCode,
-            comprimento: 20,
-            largura: 15,
-            altura: 10,
-          });
-  
+    
+          let freightOptions: FreightOption[] = [];
+          try {
+            freightOptions = await calcularFrete({
+              cepDestino: cleanedPostalCode,
+              cepOrigem: cleanedStorePostalCode,
+              comprimento: 20,
+              largura: 15,
+              altura: 10,
+            });
+          } catch (error) {
+            console.error(`Erro ao calcular o frete para a loja ${store.storeName}: ${error.message}`);
+          }
+    
           return {
             name: store.storeName,
             city: store.city,
@@ -104,14 +125,14 @@ export class StoresService {
             value: freightOptions,
           };
         }
-  
+    
         return null;
       })
     );
-  
+    
     return storeDetails.filter(Boolean).sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
   }
-
+  
   async findById(id: string): Promise<Store> {
     return this.storeModel.findById(id).exec();
   }

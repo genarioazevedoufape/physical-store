@@ -23,7 +23,7 @@ export class StoresController {
 
   @Get()
   async findAll() {
-    return this.storesService.findAll();
+    return await this.storesService.findAll(10, 0);
   }
 
   @Get('cep/:postalCode')
