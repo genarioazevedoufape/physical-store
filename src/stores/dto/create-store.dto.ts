@@ -20,13 +20,11 @@ import {
     @IsNotEmpty()
     shippingTimeInDays: number;
   
-    @IsString()
     @IsNotEmpty()
-    latitude: string;
+    latitude: number;
   
-    @IsString()
     @IsNotEmpty()
-    longitude: string;
+    longitude: number;
   
     @IsString()
     @IsNotEmpty()
