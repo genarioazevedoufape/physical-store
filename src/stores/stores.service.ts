@@ -30,16 +30,24 @@ export class StoresService {
     } catch (error) {
       console.warn(`Erro ao converter CEP em coordenadas: ${error.message}`);
     }
-  
+
+    function shippingTimeInDays(): number {
+      const randomDays = Math.floor(Math.random() * 5) + 1;
+      return randomDays;
+    }
+
+    const preparationTime = shippingTimeInDays();
+    
     const storeData = {
       ...createStoreDto,
       address1: address?.logradouro || createStoreDto.address1,
       address2: address?.bairro || createStoreDto.address2,
       address3: address?.complemento || createStoreDto.address3,
-      city: address?.localidade || createStoreDto.city,
-      state: address?.uf || createStoreDto.state,
-      latitude: coordinates?.latitude || createStoreDto.latitude,
-      longitude: coordinates?.longitude || createStoreDto.longitude,
+      city: address?.localidade,
+      state: address?.uf,
+      latitude: coordinates?.latitude,
+      longitude: coordinates?.longitude,
+      shippingTimeInDays: preparationTime,
     };
   
     const newStore = new this.storeModel(storeData);
@@ -64,7 +72,14 @@ export class StoresService {
   
   async storeByCep(postalCode: string, limit = 10, offset = 0): Promise<any> {
     const cleanedPostalCode = postalCode.replace('-', '');
-  
+    
+    function prazo(): number {
+      const randomDays = Math.floor(Math.random() * 3) + 1;
+      return randomDays;
+    }
+
+    const prazoEnvio = prazo();
+    
     let userCoordinates: Coordinates | null = null;
     try {
       userCoordinates = await convertCepToCoordinates(cleanedPostalCode);
@@ -95,7 +110,7 @@ export class StoresService {
           distance: `${distance.toFixed(2)} km`,
           value: [
             {
-              prazo: '1 dia útil',
+              prazo: prazoEnvio,
               price: 'R$ 15,00',
               description: 'Motoboy',
             },
@@ -156,7 +171,6 @@ export class StoresService {
       total: storeDetails.length,
     };
   }
-
   
   async storeById(id: string, limit: number, offset: number): Promise<any> {
     const store = await this.storeModel.findById(id).exec();
@@ -174,7 +188,6 @@ export class StoresService {
     };
   }
   
-
   async storeByState(state: string, limit: number, offset: number): Promise<any> {
     const store = await this.storeModel.find({ state }).exec();
     if (!store) {

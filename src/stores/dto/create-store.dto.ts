@@ -1,7 +1,6 @@
 import {
     IsString,
     IsNotEmpty,
-    IsBoolean,
     IsNumber,
     IsIn,
     Matches,
@@ -12,9 +11,6 @@ import {
     @IsString()
     @IsNotEmpty()
     storeName: string;
-  
-    @IsBoolean()
-    takeOutInStore: boolean;
   
     @IsNumber()
     @IsNotEmpty()
