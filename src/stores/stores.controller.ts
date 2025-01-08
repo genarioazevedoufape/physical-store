@@ -6,10 +6,13 @@ import {
   Param,
   UsePipes,
   ValidationPipe,
+  Query,
+  BadRequestException,
 } from '@nestjs/common';
 
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './dto/create-store.dto'; 
+import { PinsByCepDto } from './dto/pinsByCep.dto';
 
 @Controller('stores')
 export class StoresController {
@@ -26,7 +29,17 @@ export class StoresController {
     return await this.storesService.findAll(10, 0);
   }
 
-  @Get('cep/:postalCode')
+  @Get('pins-by-cep')
+  async pinsStoresByCep(@Query() query: PinsByCepDto) {
+    return this.storesService.pinsStoresByCep(query.cep, query.limit, query.offset);
+ }
+
+  @Get('state/:state') 
+  async findByState(@Param('state') state: string) {
+    return this.storesService.findByState(state);
+  }
+
+  @Get('cep/:postalCode') 
   async findByCep(@Param('postalCode') postalCode: string) {
     return this.storesService.findByCep(postalCode);
   }
@@ -35,9 +48,5 @@ export class StoresController {
   async findById(@Param('id') id: string) {
     return this.storesService.findById(id);
   }
-
-  @Get('state/:state')
-  async findByState(@Param('state') state: string) {
-    return this.storesService.findByState(state);
-  }
 }
+

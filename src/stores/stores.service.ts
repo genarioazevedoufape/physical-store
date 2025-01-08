@@ -140,4 +140,57 @@ export class StoresService {
   async findByState(state: string): Promise<Store[]> {
     return this.storeModel.find({ state }).exec();
   }
+
+  async pinsStoresByCep(postalCode: string, limit: number, offset: number): Promise<any> {
+    const cleanedPostalCode = postalCode.replace('-', '');
+    const userCoordinates: Coordinates = await convertCepToCoordinates(cleanedPostalCode);
+    const total = await this.storeModel.countDocuments({ type: { $in: ['LOJA', 'PDV'] } }).exec();
+
+    const stores = await this.storeModel
+      .find({ type: { $in: ['LOJA', 'PDV'] } })
+      .skip(offset)
+      .limit(limit)
+      .exec();        
+  
+    const storeDetails = await Promise.all(
+      stores.map(async (store) => {
+        const storeCoordinates: Coordinates = {
+          latitude: parseFloat(store.latitude.toString()),
+          longitude: parseFloat(store.longitude.toString()),
+        };
+  
+        const distance = calcularDistancia(userCoordinates, storeCoordinates);
+  
+        if (distance <= 50) {
+          return {
+            name: store.storeName,
+            city: store.city,
+            postalCode: store.postalCode,
+            type: store.type,
+            distance: `${distance.toFixed(2)} km`,
+            pin: {
+              position: {
+                lat: storeCoordinates.latitude,
+                lng: storeCoordinates.longitude,
+              },
+              title: store.storeName,
+            },
+          };
+        }
+  
+        return null;
+      })
+    );
+  
+    const filteredStores = storeDetails.filter(Boolean);
+  
+    return {
+      stores: filteredStores,
+      pins: filteredStores.map(store => store.pin), 
+      limit,
+      offset,
+      total,
+    };
+  }
+  
 }
