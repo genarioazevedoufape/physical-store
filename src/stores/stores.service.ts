@@ -46,7 +46,7 @@ export class StoresService {
     return newStore.save();
   }  
 
-  async findAll(limit: number, offset: number): Promise<any> {
+  async listAll(limit: number, offset: number): Promise<any> {
     const total = await this.storeModel.countDocuments().exec(); 
     const stores = await this.storeModel
       .find()
@@ -62,7 +62,7 @@ export class StoresService {
     };
   }
   
-  async findByCep(postalCode: string, limit = 10, offset = 0): Promise<any> {
+  async storeByCep(postalCode: string, limit = 10, offset = 0): Promise<any> {
     const cleanedPostalCode = postalCode.replace('-', '');
   
     let userCoordinates: Coordinates | null = null;
@@ -156,13 +156,40 @@ export class StoresService {
       total: storeDetails.length,
     };
   }
+
   
-  async findById(id: string): Promise<Store> {
-    return this.storeModel.findById(id).exec();
+  async storeById(id: string, limit: number, offset: number): Promise<any> {
+    const store = await this.storeModel.findById(id).exec();
+    if (!store) {
+      throw new Error('Store não existe');
+    }
+  
+    const total = await this.storeModel.countDocuments().exec();
+  
+    return {
+      stores: [store], 
+      limit: limit,   
+      offset: offset,  
+      total: total,  
+    };
+  }
+  
+
+  async storeByState(state: string, limit: number, offset: number): Promise<any> {
+    const store = await this.storeModel.find({ state }).exec();
+    if (!store) {
+      throw new Error('Store não existe');
+    }
+  
+    const total = await this.storeModel.countDocuments().exec();
+  
+    return {
+      stores: [store], 
+      limit: limit,   
+      offset: offset,  
+      total: total,  
+    };
   }
 
-  async findByState(state: string): Promise<Store[]> {
-    return this.storeModel.find({ state }).exec();
-  }
-  
 }
+  

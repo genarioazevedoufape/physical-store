@@ -26,7 +26,7 @@ export async function calcularFrete(freightRequest: FreightRequest): Promise<Fre
     altura: freightRequest.altura.toString(),
   };
 
-  console.log('Calculando frete com os Correios:', data);
+  // console.log('Calculando frete com os Correios:', data);
 
   const config = {
     method: 'post',
@@ -40,7 +40,7 @@ export async function calcularFrete(freightRequest: FreightRequest): Promise<Fre
 
   try {
     const response = await axios.request(config);
-    console.log('Resposta da API dos Correios:', response.data);
+    // console.log('Resposta da API dos Correios:', response.data);
 
     if (!response.data || !Array.isArray(response.data)) {
       throw new Error('Resposta da API dos Correios inválida ou inesperada');
