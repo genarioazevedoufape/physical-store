@@ -7,7 +7,6 @@ import {
   UsePipes,
   ValidationPipe,
   Query,
-  BadRequestException,
 } from '@nestjs/common';
 
 import { StoresService } from './stores.service';
