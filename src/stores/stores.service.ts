@@ -11,7 +11,6 @@ import { calcularDistancia } from '../utils/calculateDistance.helper';
 import { calcularFrete} from '../utils/calculateFreight.helper';
 import { FreightOption } from '../types/freightOption.interface';
 
-
 @Injectable()
 export class StoresService {
   constructor(@InjectModel(Store.name) private storeModel: Model<StoreDocument>) {}
@@ -145,7 +144,6 @@ export class StoresService {
       }
     }
   
-
     storeDetails.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
   
     const paginatedStores = storeDetails.slice(offset, offset + limit);
@@ -158,7 +156,6 @@ export class StoresService {
       total: storeDetails.length,
     };
   }
-  
   
   async findById(id: string): Promise<Store> {
     return this.storeModel.findById(id).exec();
