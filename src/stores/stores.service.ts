@@ -66,7 +66,6 @@ export class StoresService {
   async findByCep(postalCode: string, limit = 10, offset = 0): Promise<any> {
     const cleanedPostalCode = postalCode.replace('-', '');
   
-    // Obter coordenadas do usuário com base no CEP
     let userCoordinates: Coordinates | null = null;
     try {
       userCoordinates = await convertCepToCoordinates(cleanedPostalCode);
@@ -75,7 +74,6 @@ export class StoresService {
       return { stores: [], pins: [], limit, offset, total: 0 };
     }
   
-    // Buscar todas as lojas e PDVs
     const stores = await this.storeModel.find({ type: { $in: ['LOJA', 'PDV'] } }).exec();
   
     const storeDetails = [];
@@ -90,7 +88,6 @@ export class StoresService {
       const distance = calcularDistancia(userCoordinates, storeCoordinates);
   
       if (distance <= 50) {
-        // Loja ou PDV dentro do raio de 50 km
         storeDetails.push({
           name: store.storeName,
           city: store.city,
@@ -106,7 +103,6 @@ export class StoresService {
           ],
         });
   
-        // Adicionar o pin correspondente
         pins.push({
           position: {
             lat: storeCoordinates.latitude,
@@ -115,7 +111,6 @@ export class StoresService {
           title: store.storeName,
         });
       } else if (store.type === 'LOJA') {
-        // Lojas fora do raio de 50 km, calcular frete
         const cleanedStorePostalCode = store.postalCode.replace('-', '');
   
         let freightOptions: FreightOption[] = [];
@@ -139,8 +134,7 @@ export class StoresService {
           distance: `${distance.toFixed(2)} km`,
           value: freightOptions,
         });
-  
-        // Adicionar o pin correspondente
+
         pins.push({
           position: {
             lat: storeCoordinates.latitude,
@@ -151,13 +145,11 @@ export class StoresService {
       }
     }
   
-    // Ordenar as lojas pelo menor valor de distância
+
     storeDetails.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
   
-    // Aplicar paginação com os valores dinâmicos de limit e offset
     const paginatedStores = storeDetails.slice(offset, offset + limit);
   
-    // Retornar o JSON esperado
     return {
       stores: paginatedStores,
       pins,
