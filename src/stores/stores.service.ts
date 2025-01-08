@@ -63,75 +63,110 @@ export class StoresService {
     };
   }
   
-  async findByCep(postalCode: string): Promise<any[]> {
+  async findByCep(postalCode: string, limit = 10, offset = 0): Promise<any> {
     const cleanedPostalCode = postalCode.replace('-', '');
-    
+  
+    // Obter coordenadas do usuário com base no CEP
     let userCoordinates: Coordinates | null = null;
     try {
       userCoordinates = await convertCepToCoordinates(cleanedPostalCode);
     } catch (error) {
       console.error(`Erro ao converter o CEP do usuário: ${error.message}`);
-      return [];
+      return { stores: [], pins: [], limit, offset, total: 0 };
     }
   
+    // Buscar todas as lojas e PDVs
     const stores = await this.storeModel.find({ type: { $in: ['LOJA', 'PDV'] } }).exec();
-    
-    const storeDetails = await Promise.all(
-      stores.map(async (store) => {
-        const storeCoordinates: Coordinates = {
-          latitude: parseFloat(store.latitude.toString()),
-          longitude: parseFloat(store.longitude.toString()),
-        };
-    
-        const distance = calcularDistancia(userCoordinates, storeCoordinates);
-    
-        if (distance <= 50) {
-          return {
-            name: store.storeName,
-            city: store.city,
-            postalCode: store.postalCode,
-            type: store.type,
-            distance: `${distance.toFixed(2)} km`,
-            value: [
-              {
-                prazo: '1 dia útil',
-                price: 'R$ 15,00',
-                description: 'Motoboy',
-              },
-            ],
-          };
-        } else if (store.type === 'LOJA') {
-          const cleanedStorePostalCode = store.postalCode.replace('-', '');
-    
-          let freightOptions: FreightOption[] = [];
-          try {
-            freightOptions = await calcularFrete({
-              cepDestino: cleanedPostalCode,
-              cepOrigem: cleanedStorePostalCode,
-              comprimento: 20,
-              largura: 15,
-              altura: 10,
-            });
-          } catch (error) {
-            console.error(`Erro ao calcular o frete para a loja ${store.storeName}: ${error.message}`);
-          }
-    
-          return {
-            name: store.storeName,
-            city: store.city,
-            postalCode: store.postalCode,
-            type: 'LOJA',
-            distance: `${distance.toFixed(2)} km`,
-            value: freightOptions,
-          };
+  
+    const storeDetails = [];
+    const pins = [];
+  
+    for (const store of stores) {
+      const storeCoordinates: Coordinates = {
+        latitude: parseFloat(store.latitude.toString()),
+        longitude: parseFloat(store.longitude.toString()),
+      };
+  
+      const distance = calcularDistancia(userCoordinates, storeCoordinates);
+  
+      if (distance <= 50) {
+        // Loja ou PDV dentro do raio de 50 km
+        storeDetails.push({
+          name: store.storeName,
+          city: store.city,
+          postalCode: store.postalCode,
+          type: store.type,
+          distance: `${distance.toFixed(2)} km`,
+          value: [
+            {
+              prazo: '1 dia útil',
+              price: 'R$ 15,00',
+              description: 'Motoboy',
+            },
+          ],
+        });
+  
+        // Adicionar o pin correspondente
+        pins.push({
+          position: {
+            lat: storeCoordinates.latitude,
+            lng: storeCoordinates.longitude,
+          },
+          title: store.storeName,
+        });
+      } else if (store.type === 'LOJA') {
+        // Lojas fora do raio de 50 km, calcular frete
+        const cleanedStorePostalCode = store.postalCode.replace('-', '');
+  
+        let freightOptions: FreightOption[] = [];
+        try {
+          freightOptions = await calcularFrete({
+            cepDestino: cleanedPostalCode,
+            cepOrigem: cleanedStorePostalCode,
+            comprimento: 20,
+            largura: 15,
+            altura: 10,
+          });
+        } catch (error) {
+          console.error(`Erro ao calcular o frete para a loja ${store.storeName}: ${error.message}`);
         }
-    
-        return null;
-      })
-    );
-    
-    return storeDetails.filter(Boolean).sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+  
+        storeDetails.push({
+          name: store.storeName,
+          city: store.city,
+          postalCode: store.postalCode,
+          type: 'LOJA',
+          distance: `${distance.toFixed(2)} km`,
+          value: freightOptions,
+        });
+  
+        // Adicionar o pin correspondente
+        pins.push({
+          position: {
+            lat: storeCoordinates.latitude,
+            lng: storeCoordinates.longitude,
+          },
+          title: store.storeName,
+        });
+      }
+    }
+  
+    // Ordenar as lojas pelo menor valor de distância
+    storeDetails.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+  
+    // Aplicar paginação com os valores dinâmicos de limit e offset
+    const paginatedStores = storeDetails.slice(offset, offset + limit);
+  
+    // Retornar o JSON esperado
+    return {
+      stores: paginatedStores,
+      pins,
+      limit,
+      offset,
+      total: storeDetails.length,
+    };
   }
+  
   
   async findById(id: string): Promise<Store> {
     return this.storeModel.findById(id).exec();
@@ -139,58 +174,6 @@ export class StoresService {
 
   async findByState(state: string): Promise<Store[]> {
     return this.storeModel.find({ state }).exec();
-  }
-
-  async pinsStoresByCep(postalCode: string, limit: number, offset: number): Promise<any> {
-    const cleanedPostalCode = postalCode.replace('-', '');
-    const userCoordinates: Coordinates = await convertCepToCoordinates(cleanedPostalCode);
-    const total = await this.storeModel.countDocuments({ type: { $in: ['LOJA', 'PDV'] } }).exec();
-
-    const stores = await this.storeModel
-      .find({ type: { $in: ['LOJA', 'PDV'] } })
-      .skip(offset)
-      .limit(limit)
-      .exec();        
-  
-    const storeDetails = await Promise.all(
-      stores.map(async (store) => {
-        const storeCoordinates: Coordinates = {
-          latitude: parseFloat(store.latitude.toString()),
-          longitude: parseFloat(store.longitude.toString()),
-        };
-  
-        const distance = calcularDistancia(userCoordinates, storeCoordinates);
-  
-        if (distance <= 50) {
-          return {
-            name: store.storeName,
-            city: store.city,
-            postalCode: store.postalCode,
-            type: store.type,
-            distance: `${distance.toFixed(2)} km`,
-            pin: {
-              position: {
-                lat: storeCoordinates.latitude,
-                lng: storeCoordinates.longitude,
-              },
-              title: store.storeName,
-            },
-          };
-        }
-  
-        return null;
-      })
-    );
-  
-    const filteredStores = storeDetails.filter(Boolean);
-  
-    return {
-      stores: filteredStores,
-      pins: filteredStores.map(store => store.pin), 
-      limit,
-      offset,
-      total,
-    };
   }
   
 }
