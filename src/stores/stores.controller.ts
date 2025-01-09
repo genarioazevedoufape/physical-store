@@ -32,7 +32,7 @@ export class StoresController {
   async storeByState(
     @Param('state') state: string,         
     @Query('limit') limit: number = 10,    
-    @Query('offset') offset: number = 0  
+    @Query('offset') offset: number = 1  
   ) {
     return this.storesService.storeByState(state, limit, offset);  
   }
@@ -41,18 +41,14 @@ export class StoresController {
   async storeByCep(
     @Param('postalCode') postalCode: string,
     @Query('limit') limit: number = 10,
-    @Query('offset') offset: number = 0,
+    @Query('offset') offset: number = 1,
   ) {
     return this.storesService.storeByCep(postalCode, limit, offset);
   }
   
   @Get(':id')
-  async storeById(
-    @Param('id') id: string,         
-    @Query('limit') limit: number = 10,    
-    @Query('offset') offset: number = 0  
-  ) {
-    return this.storesService.storeById(id, limit, offset);  
+  async storeById(@Param('id') id: string) {
+    return this.storesService.storeById(id);  
   }
 }
 

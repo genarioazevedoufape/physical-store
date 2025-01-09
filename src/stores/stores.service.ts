@@ -172,21 +172,17 @@ export class StoresService {
     };
   }
   
-  async storeById(id: string, limit: number, offset: number): Promise<any> {
-    const store = await this.storeModel.findById(id).exec();
-    if (!store) {
-      throw new Error('Store não existe');
-    }
-  
-    const total = await this.storeModel.countDocuments().exec();
-  
-    return {
-      stores: [store], 
-      limit: limit,   
-      offset: offset,  
-      total: total,  
-    };
+async storeById(id: string): Promise<any> {
+  const store = await this.storeModel.findById(id).exec();
+  if (!store) {
+    throw new Error('Store não existe');
   }
+
+  return {
+    stores: [store],
+    total: 1, 
+  };
+}
   
   async storeByState(state: string, limit: number, offset: number): Promise<any> {
     const store = await this.storeModel.find({ state }).exec();
