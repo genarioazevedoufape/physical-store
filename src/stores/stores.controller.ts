@@ -7,6 +7,8 @@ import {
   UsePipes,
   ValidationPipe,
   Query,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 
 import { StoresService } from './stores.service';
@@ -18,37 +20,55 @@ export class StoresController {
 
   @Post()
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  
   async create(@Body() createStoreDto: CreateStoreDto) {
-    return this.storesService.create(createStoreDto);
+    try {
+      return await this.storesService.create(createStoreDto);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   @Get()
   async listAll() {
-    return await this.storesService.listAll(10, 1);
+    try {
+      return await this.storesService.listAll(10, 0);  // Ajuste no valor padrão de offset
+    } catch (error) {
+      throw new HttpException('Erro ao listar lojas', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
-  @Get('state/:state') 
+  @Get('state/:state')
   async storeByState(
     @Param('state') state: string,         
     @Query('limit') limit: number = 10,    
-    @Query('offset') offset: number = 1  
+    @Query('offset') offset: number = 0  // Ajuste no valor padrão de offset
   ) {
-    return this.storesService.storeByState(state, limit, offset);  
+    try {
+      return await this.storesService.storeByState(state, limit, offset);
+    } catch (error) {
+      throw new HttpException(error.message || 'Erro ao buscar lojas por estado', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Get('cep/:postalCode')
   async storeByCep(
     @Param('postalCode') postalCode: string,
     @Query('limit') limit: number = 10,
-    @Query('offset') offset: number = 1,
+    @Query('offset') offset: number = 0  // Ajuste no valor padrão de offset
   ) {
-    return this.storesService.storeByCep(postalCode, limit, offset);
+    try {
+      return await this.storesService.storeByCep(postalCode, limit, offset);
+    } catch (error) {
+      throw new HttpException(error.message || 'Erro ao buscar lojas por CEP', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
-  
+
   @Get(':id')
   async storeById(@Param('id') id: string) {
-    return this.storesService.storeById(id);  
+    try {
+      return await this.storesService.storeById(id);  
+    } catch (error) {
+      throw new HttpException(error.message || 'Loja não encontrada', HttpStatus.NOT_FOUND);
+    }
   }
 }
-
