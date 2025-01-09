@@ -56,12 +56,6 @@ export class Store {
   @Prop({ required: true, match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ }) 
   emailAddress: string;
 
-  @Prop({ default: Date.now })
-  createdAt: Date;
-
-  @Prop({ default: Date.now })
-  updatedAt: Date;
-
 }
 
 export const StoreSchema = SchemaFactory.createForClass(Store);
