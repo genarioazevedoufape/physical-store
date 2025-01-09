@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type StoreDocument = Store & Document;
 
-@Schema()
+@Schema({ timestamps: true })
 export class Store {
   @Prop({ required: true, default: () => `STORE-${Date.now()}` })
   storeID: string; 
@@ -55,6 +55,13 @@ export class Store {
 
   @Prop({ required: true, match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ }) 
   emailAddress: string;
+
+  @Prop({ default: Date.now })
+  createdAt: Date;
+
+  @Prop({ default: Date.now })
+  updatedAt: Date;
+
 }
 
 export const StoreSchema = SchemaFactory.createForClass(Store);
