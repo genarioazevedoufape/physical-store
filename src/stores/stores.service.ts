@@ -51,8 +51,8 @@ export class StoresService {
     const storeData = {
       ...createStoreDto,
       address1: address?.logradouro || createStoreDto.address1,
-      address2: address?.bairro || createStoreDto.address2,
-      address3: address?.complemento || createStoreDto.address3,
+      address2: address?.bairro,
+      address3: address?.complemento,
       city: address?.localidade,
       state: address?.uf,
       latitude: coordinates?.latitude,

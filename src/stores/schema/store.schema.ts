@@ -35,7 +35,7 @@ export class Store {
   @Prop({ required: true })
   city: string; 
   
-  @Prop({ required: true })
+  @Prop()
   district: string; 
 
   @Prop({ required: true })
@@ -50,10 +50,10 @@ export class Store {
   @Prop({ required: true, match: /^[0-9]{5}-[0-9]{3}$/ }) 
   postalCode: string;
 
-  @Prop({ required: true, match: /^[0-9]{10,11}$/ }) 
+  @Prop({ match: /^[0-9]{10,11}$/ }) 
   telephoneNumber: string;
 
-  @Prop({ required: true, match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ }) 
+  @Prop({ match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ }) 
   emailAddress: string;
 
 }
