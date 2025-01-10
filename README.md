@@ -61,19 +61,33 @@ Este projeto é uma API desenvolvida utilizando o framework **NestJS** com o obj
 
 ## Estrutura do Projeto
 ```plaintext
-src
-├── stores
-│   ├── stores.controller.ts
-│   │   └── stores.controller.ts
-│   ├── dto
+src/
+├── stores/
+│   ├── dto/
 │   │   └── create-store.dto.ts
-│   ├── services
-│   │   └── stores.service.ts
-│   ├── schemas
-│   │   └── store.schema.ts
-│   └── stores.module.ts
+│   ├── schema/
+│   │   └── stores.controller.spec.ts
+│   ├── stores.controller.ts
+│   ├── stores.module.ts
+│   ├── stores.service.ts
+│   ├── stores.service.spec.ts
+├── types/
+│   ├── coordinates.interface.ts
+│   ├── freightOption.interface.ts
+│   ├── index.ts
+│   ├── viaCep-response.interface.ts
+├── utils/
+│   ├── calculateDistance.helper.ts
+│   ├── calculateFreight.helper.ts
+│   ├── convertCepToCoordinates.helper.ts
+│   ├── fetchAddressFromCep.helper.ts
 ├── app.module.ts
 ├── main.ts
+test/
+├── app.e2e-spec.ts
+├── jest-e2e.json
+README.md
+
 ```
 
 ## Endpoints Disponíveis
