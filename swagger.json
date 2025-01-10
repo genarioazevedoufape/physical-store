@@ -1,0 +1,206 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/stores": {
+      "post": {
+        "operationId": "StoresController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateStoreDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Loja criada com sucesso." },
+          "400": { "description": "Dados inválidos fornecidos." }
+        },
+        "summary": "Criar uma nova loja",
+        "tags": ["Stores"]
+      },
+      "get": {
+        "operationId": "StoresController_listAll",
+        "parameters": [],
+        "responses": {
+          "200": { "description": "Lista de lojas retornada com sucesso." },
+          "500": { "description": "Erro ao listar lojas." }
+        },
+        "summary": "Listar todas as lojas",
+        "tags": ["Stores"]
+      }
+    },
+    "/stores/state/{state}": {
+      "get": {
+        "operationId": "StoresController_storeByState",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "path",
+            "description": "Estado onde as lojas estão localizadas",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Número máximo de lojas a retornar",
+            "schema": { "example": 10, "type": "number" }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Número de lojas a pular para paginação",
+            "schema": { "example": 0, "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de lojas por estado retornada com sucesso."
+          },
+          "500": { "description": "Erro ao buscar lojas por estado." }
+        },
+        "summary": "Buscar lojas por estado",
+        "tags": ["Stores"]
+      }
+    },
+    "/stores/cep/{postalCode}": {
+      "get": {
+        "operationId": "StoresController_storeByCep",
+        "parameters": [
+          {
+            "name": "postalCode",
+            "required": true,
+            "in": "path",
+            "description": "CEP do usuário para buscar lojas próximas",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Número máximo de lojas a retornar",
+            "schema": { "example": 10, "type": "number" }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Número de lojas a pular para paginação",
+            "schema": { "example": 0, "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de lojas por CEP retornada com sucesso."
+          },
+          "500": { "description": "Erro ao buscar lojas por CEP." }
+        },
+        "summary": "Buscar lojas por CEP",
+        "tags": ["Stores"]
+      }
+    },
+    "/stores/{id}": {
+      "get": {
+        "operationId": "StoresController_storeById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID da loja a ser buscada",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Detalhes da loja retornados com sucesso." },
+          "404": { "description": "Loja não encontrada." }
+        },
+        "summary": "Buscar loja por ID",
+        "tags": ["Stores"]
+      }
+    }
+  },
+  "info": {
+    "title": "Physical-Store API",
+    "description": "Documentação da API da aplicação",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [{ "name": "Stores", "description": "" }],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "CreateStoreDto": {
+        "type": "object",
+        "properties": {
+          "storeName": {
+            "type": "string",
+            "description": "Nome da loja",
+            "example": "Loja Exemplo"
+          },
+          "shippingTimeInDays": {
+            "type": "number",
+            "description": "Prazo de envio em dias",
+            "example": 3
+          },
+          "address1": {
+            "type": "string",
+            "description": "Endereço principal",
+            "example": "Rua das Flores, 123"
+          },
+          "address2": {
+            "type": "string",
+            "description": "Endereço secundário",
+            "example": "Apto 101"
+          },
+          "address3": {
+            "type": "string",
+            "description": "Endereço terciário",
+            "example": "Bloco B"
+          },
+          "city": {
+            "type": "string",
+            "description": "Cidade",
+            "example": "São Paulo"
+          },
+          "district": {
+            "type": "string",
+            "description": "Bairro",
+            "example": "Centro"
+          },
+          "state": {
+            "type": "string",
+            "description": "Estado (sigla)",
+            "example": "SP"
+          },
+          "type": {
+            "type": "string",
+            "description": "Tipo da loja",
+            "example": "LOJA",
+            "enum": ["PDV", "LOJA"]
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "CEP no formato 00000-000",
+            "example": "12345-678"
+          },
+          "telephoneNumber": {
+            "type": "string",
+            "description": "Número de telefone (10 ou 11 dígitos)",
+            "example": "11987654321"
+          },
+          "emailAddress": {
+            "type": "string",
+            "description": "Endereço de email",
+            "example": "exemplo@loja.com"
+          }
+        },
+        "required": ["storeName", "address1", "type", "postalCode"]
+      }
+    }
+  }
+}
