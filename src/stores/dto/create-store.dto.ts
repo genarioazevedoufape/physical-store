@@ -27,7 +27,7 @@ export class CreateStoreDto {
   @IsOptional()
   address3?: string;
 
-  @ApiPropertyOptional({ description: 'Cidade', example: 'São Paulo' })
+  @ApiPropertyOptional({ description: 'Cidade', example: 'Correntes' })
   @IsString()
   @IsOptional()
   city?: string;
@@ -37,7 +37,7 @@ export class CreateStoreDto {
   @IsOptional()
   district?: string;
 
-  @ApiPropertyOptional({ description: 'Estado (sigla)', example: 'SP' })
+  @ApiPropertyOptional({ description: 'Estado (sigla)', example: 'PE' })
   @IsString()
   @IsOptional()
   @IsIn(['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'])
@@ -49,7 +49,7 @@ export class CreateStoreDto {
   @IsIn(['PDV', 'LOJA'])
   type: string;
 
-  @ApiProperty({ description: 'CEP no formato 00000-000', example: '12345-678' })
+  @ApiProperty({ description: 'CEP no formato 00000-000', example: '55315-000' })
   @Matches(/^[0-9]{5}-[0-9]{3}$/)
   postalCode: string;
 
