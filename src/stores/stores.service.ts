@@ -80,7 +80,7 @@ export class StoresService {
 
   async storeByCep(postalCode: string, limit = 10, offset = 0): Promise<any> {
     const cleanedPostalCode = postalCode.replace('-', '');
-    console.log(`CEP Limpo: ${cleanedPostalCode}`);
+    // console.log(`CEP Limpo: ${cleanedPostalCode}`);
     
     function prazo(): number {
       return Math.floor(Math.random() * 2) + 1;
@@ -91,7 +91,7 @@ export class StoresService {
     let userCoordinates: Coordinates | null = null;
     try {
       userCoordinates = await convertCepToCoordinates(cleanedPostalCode);
-      console.log(`Coordenadas do Usuário: ${JSON.stringify(userCoordinates)}`);
+      // console.log(`Coordenadas do Usuário: ${JSON.stringify(userCoordinates)}`);
     } catch (error) {
       console.error(`Erro ao converter o CEP do usuário: ${error.message}`);
       throw new HttpException('Erro ao converter o CEP do usuário', HttpStatus.BAD_REQUEST);
@@ -106,7 +106,7 @@ export class StoresService {
     let totalStores;
     try {
       totalStores = await this.storeModel.countDocuments({ type: { $in: ['LOJA', 'PDV'] } }).exec();
-      console.log(`Total de Lojas no Banco de Dados: ${totalStores}`);
+      // console.log(`Total de Lojas no Banco de Dados: ${totalStores}`);
     } catch (error) {
       console.error(`Erro ao contar lojas no banco de dados: ${error.message}`);
       throw new HttpException('Erro ao contar lojas', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -121,7 +121,7 @@ export class StoresService {
           .limit(10)
           .exec();
   
-        console.log(`Lojas Encontradas no Lote: ${stores.length}`);
+        // console.log(`Lojas Encontradas no Lote: ${stores.length}`);
         if (stores.length === 0) {
           hasMoreStores = false; 
           break;
@@ -139,7 +139,7 @@ export class StoresService {
         };
   
         const distance = calcularDistancia(userCoordinates, storeCoordinates);
-        console.log(`Distância para a loja ${store.storeName}: ${distance} km`);
+        // console.log(`Distância para a loja ${store.storeName}: ${distance} km`);
   
         if (distance <= 50) {
           storeDetails.push({
@@ -202,7 +202,7 @@ export class StoresService {
       currentOffset += 10;
     }
   
-    console.log(`Total de Lojas Processadas: ${storeDetails.length}`);
+    // console.log(`Total de Lojas Processadas: ${storeDetails.length}`);
   
     storeDetails.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
   
