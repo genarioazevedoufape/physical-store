@@ -237,18 +237,22 @@ export class StoresService {
   async storeByState(state: string, limit: number, offset: number): Promise<any> {
     let stores;
     try {
-      stores = await this.storeModel.find({ state }).exec();
+      stores = await this.storeModel
+        .find({ state: { $regex: new RegExp(`^${state}$`, 'i') } })
+        .skip(offset)
+        .limit(limit)
+        .exec();
     } catch (error) {
       console.error(`Erro ao buscar lojas por estado: ${error.message}`);
       throw new HttpException('Erro ao buscar lojas por estado', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
+  
     if (!stores || stores.length === 0) {
       throw new HttpException('Nenhuma loja encontrada para o estado informado', HttpStatus.NOT_FOUND);
     }
-
-    const total = await this.storeModel.countDocuments().exec();
-
+  
+    const total = await this.storeModel.countDocuments({ state: { $regex: new RegExp(`^${state}$`, 'i') } }).exec();
+  
     return {
       stores,
       limit,
@@ -256,4 +260,5 @@ export class StoresService {
       total,
     };
   }
+  
 }
