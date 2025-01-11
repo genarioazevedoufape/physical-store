@@ -80,96 +80,54 @@ export class StoresService {
 
   async storeByCep(postalCode: string, limit = 10, offset = 0): Promise<any> {
     const cleanedPostalCode = postalCode.replace('-', '');
-    // console.log(`CEP Limpo: ${cleanedPostalCode}`);
-    
-    function prazo(): number {
-      return Math.floor(Math.random() * 2) + 1;
-    }
-    
-    const prazoEnvio = prazo();
   
     let userCoordinates: Coordinates | null = null;
     try {
       userCoordinates = await convertCepToCoordinates(cleanedPostalCode);
-      // console.log(`Coordenadas do Usuário: ${JSON.stringify(userCoordinates)}`);
     } catch (error) {
       console.error(`Erro ao converter o CEP do usuário: ${error.message}`);
       throw new HttpException('Erro ao converter o CEP do usuário', HttpStatus.BAD_REQUEST);
     }
   
+    let stores;
+    try {
+      stores = await this.storeModel.find({ type: { $in: ['LOJA', 'PDV'] } }).exec();
+    } catch (error) {
+      console.error(`Erro ao buscar lojas: ${error.message}`);
+      throw new HttpException('Erro ao buscar lojas', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  
     const storeDetails = [];
     const pins = [];
   
-    let hasMoreStores = true; 
-    let currentOffset = offset;
+    for (const store of stores) {
+      const storeCoordinates: Coordinates = {
+        latitude: parseFloat(store.latitude.toString()),
+        longitude: parseFloat(store.longitude.toString()),
+      };
   
-    let totalStores;
-    try {
-      totalStores = await this.storeModel.countDocuments({ type: { $in: ['LOJA', 'PDV'] } }).exec();
-      // console.log(`Total de Lojas no Banco de Dados: ${totalStores}`);
-    } catch (error) {
-      console.error(`Erro ao contar lojas no banco de dados: ${error.message}`);
-      throw new HttpException('Erro ao contar lojas', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+      const distance = calcularDistancia(userCoordinates, storeCoordinates);
   
-    while (hasMoreStores && storeDetails.length < limit) {
-      let stores;
-      try {
-        stores = await this.storeModel
-          .find({ type: { $in: ['LOJA', 'PDV'] } })
-          .skip(currentOffset)
-          .limit(10)
-          .exec();
-  
-        // console.log(`Lojas Encontradas no Lote: ${stores.length}`);
-        if (stores.length === 0) {
-          hasMoreStores = false; 
-          break;
-        }
-      } catch (error) {
-        console.error(`Erro ao buscar lojas: ${error.message}`);
-        throw new HttpException('Erro ao buscar lojas', HttpStatus.INTERNAL_SERVER_ERROR);
-      }
-  
-      for (const store of stores) {
-        if (storeDetails.length >= limit) break;
-        const storeCoordinates: Coordinates = {
-          latitude: parseFloat(store.latitude.toString()),
-          longitude: parseFloat(store.longitude.toString()),
+      if (distance <= 50 || store.type === 'LOJA') {
+        const storeDetail = {
+          name: store.storeName,
+          city: store.city,
+          postalCode: store.postalCode,
+          type: store.type,
+          distance: `${distance.toFixed(2)} km`,
+          value: [],
         };
   
-        const distance = calcularDistancia(userCoordinates, storeCoordinates);
-        // console.log(`Distância para a loja ${store.storeName}: ${distance} km`);
-  
         if (distance <= 50) {
-          storeDetails.push({
-            name: store.storeName,
-            city: store.city,
-            postalCode: store.postalCode,
-            type: store.type,
-            distance: `${distance.toFixed(2)} km`,
-            value: [
-              {
-                prazo: prazoEnvio,
-                price: 'R$ 15,00',
-                description: 'Motoboy',
-              },
-            ],
-          });
-  
-          pins.push({
-            position: {
-              lat: storeCoordinates.latitude,
-              lng: storeCoordinates.longitude,
-            },
-            title: store.storeName,
+          storeDetail.value.push({
+            prazo: Math.floor(Math.random() * 2) + 1,
+            price: 'R$ 15,00',
+            description: 'Motoboy',
           });
         } else if (store.type === 'LOJA') {
           const cleanedStorePostalCode = store.postalCode.replace('-', '');
-  
-          let freightOptions: FreightOption[] = [];
           try {
-            freightOptions = await calcularFrete({
+            storeDetail.value = await calcularFrete({
               cepDestino: cleanedPostalCode,
               cepOrigem: cleanedStorePostalCode,
               comprimento: 20,
@@ -179,39 +137,28 @@ export class StoresService {
           } catch (error) {
             console.error(`Erro ao calcular o frete para a loja ${store.storeName}: ${error.message}`);
           }
-  
-          storeDetails.push({
-            name: store.storeName,
-            city: store.city,
-            postalCode: store.postalCode,
-            type: 'LOJA',
-            distance: `${distance.toFixed(2)} km`,
-            value: freightOptions,
-          });
-  
-          pins.push({
-            position: {
-              lat: storeCoordinates.latitude,
-              lng: storeCoordinates.longitude,
-            },
-            title: store.storeName,
-          });
         }
+  
+        storeDetails.push(storeDetail);
+  
+        pins.push({
+          position: {
+            lat: storeCoordinates.latitude,
+            lng: storeCoordinates.longitude,
+          },
+          title: store.storeName,
+        });
       }
-  
-      currentOffset += 10;
     }
-  
-    // console.log(`Total de Lojas Processadas: ${storeDetails.length}`);
   
     storeDetails.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
   
     return {
-      stores: storeDetails.slice(0, limit),
+      stores: storeDetails.slice(offset, offset + limit),
       pins,
       limit,
       offset,
-      total: totalStores, 
+      total: storeDetails.length,
     };
   }
   
