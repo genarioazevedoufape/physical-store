@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Coordinates } from '../types/coordinates.interface';
+import { ConfigService } from '@nestjs/config'
 
 interface GeocodeResponse {
   status: string;
@@ -8,7 +9,9 @@ interface GeocodeResponse {
 
 export async function convertCepToCoordinates(cep: string): Promise<Coordinates> {
   
-  const apiKey = '7FQrZ0Ud1i3w4lR7upy0cxTdV9sjNzQL30FQL6MIssLvq7zI2hwZJOCDymRX8ZHa';
+  const configService = new ConfigService(); 
+  const apiKey = configService.get<string>('DISTANCEMATRIX_API_KEY');
+
   if (!apiKey) {
     throw new Error('Chave de API do DistanceMatrix.ai não configurada');
   }
