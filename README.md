@@ -118,9 +118,9 @@ Busca lojas próximas a um CEP.
 Retorna detalhes de uma loja por ID.
 
 ## API externas
-**ViaCep:** [https://viacep.com.br](https://viacep.com.br)
-**DistanceMatrix:** [https://distancematrix.ai/distance-matrix-api](https://distancematrix.ai/distance-matrix-api/maps/api/geocode/json)
-**Correios:** [https://www.correios.com.br/@@precosEPrazosView](https://www.correios.com.br/@@precosEPrazosView)
+- **ViaCep:** [https://viacep.com.br](https://viacep.com.br)
+- **DistanceMatrix:** [https://distancematrix.ai/distance-matrix-api](https://distancematrix.ai/distance-matrix-api/maps/api/geocode/json)
+- **Correios:** [https://www.correios.com.br/@@precosEPrazosView](https://www.correios.com.br/@@precosEPrazosView)
 
 ## Documentação Swagger
 A documentação completa da API está disponível em:
