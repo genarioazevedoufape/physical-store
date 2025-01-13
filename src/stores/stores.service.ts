@@ -9,7 +9,6 @@ import { ViaCepResponse } from '../types/viaCep-response.interface';
 import { Coordinates } from '../types/coordinates.interface';
 import { calcularDistancia } from '../utils/calculateDistance.helper';
 import { calcularFrete } from '../utils/calculateFreight.helper';
-import { FreightOption } from '../types/freightOption.interface';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 @Injectable()
@@ -77,18 +76,44 @@ export class StoresService {
       throw new HttpException('Erro ao listar lojas', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
   async storeByCep(postalCode: string, limit = 10, offset = 0): Promise<any> {
     const cleanedPostalCode = postalCode.replace('-', '');
-  
+
+    function getNextPostalCode(postalCode: string): string {
+      const prefix = postalCode.slice(0, 5); 
+      const suffix = postalCode.slice(5);
+      const incrementedPrefix = (parseInt(prefix, 10) + 1).toString().padStart(5, '0');
+      return `${incrementedPrefix}${suffix}`; 
+    }
+    
     let userCoordinates: Coordinates | null = null;
-    try {
-      userCoordinates = await convertCepToCoordinates(cleanedPostalCode);
-    } catch (error) {
-      console.error(`Erro ao converter o CEP do usuário: ${error.message}`);
-      throw new HttpException('Erro ao converter o CEP do usuário', HttpStatus.BAD_REQUEST);
+    let attempts = 0;
+    const maxAttempts = 50; 
+    let currentPostalCode = cleanedPostalCode;
+  
+    while (attempts < maxAttempts) {
+      try {
+        userCoordinates = await convertCepToCoordinates(currentPostalCode);
+        console.log(`Tentativa ${attempts + 1}: Coordenadas para CEP ${currentPostalCode} -> ${JSON.stringify(userCoordinates)}`);
+  
+        if (userCoordinates.latitude !== 0 || userCoordinates.longitude !== 0) {
+          break; 
+        }
+      } catch (error) {
+        console.error(`Erro ao converter o CEP ${currentPostalCode}: ${error.message}`);
+      }
+      
+      currentPostalCode = getNextPostalCode(currentPostalCode); 
+      attempts++;
     }
   
+    if (!userCoordinates || (userCoordinates.latitude === 0 && userCoordinates.longitude === 0)) {
+      throw new HttpException(
+        'Não foi possível obter coordenadas válidas para o CEP fornecido e CEPs adjacentes.',
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
     let stores;
     try {
       stores = await this.storeModel.find({ type: { $in: ['LOJA', 'PDV'] } }).exec();
